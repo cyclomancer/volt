@@ -84,7 +84,7 @@
       ==
     ::
     ++  wallet
-      %-  ~(from-seed bip32 wall)
+      ~+  %-  ~(from-seed bip32 wall)
         ?~  seed.action
           (generate-seed)
         u.seed.action
