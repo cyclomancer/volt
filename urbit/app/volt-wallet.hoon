@@ -3,12 +3,18 @@
 ::
 /-  *volt, *bitcoin
 /+  bip32, bip39, bc=bitcoin
+/+  commit=commitment-secret
 /+  server, default-agent, dbug
 =,  ecc=secp256k1:secp:crypto
 |%
 +$  card  card:agent:gall
 ::
 +$  wall  [prv=@ pub=point.ecc cad=@ dep=@ud ind=@ud pif=@]
+::
++$  point  point:secp:crypto
+::
+::  A 
++$  shown  (list )
 ::
 +$  state-0
   $:  %0
@@ -110,6 +116,16 @@
     =/  sig=hexb:bc  (sign-digest path.action hash.action)
     :_  state
     ~[(send-result [%signature path.action sig])]
+  ::
+      %get-commitment-point
+    =/  =point  (get-commitment-point path.action idx.action)
+    :_  state
+    ~[(send-result [%point path.action point])]
+  ::
+      %show-commitment-secret
+    =/  secret=@  (show-commitment-secret path.action idx.action)
+    :_  state
+    ~[(send-result [%secret path.action secret])]
   ==
 ::
 ++  get-public-key
@@ -137,6 +153,18 @@
       [wid=32 dat=s]
       [wid=1 dat=v]
   ==
+::
+++  get-commitment-point
+  |=  [pax=(list @u) i=@]
+  ^-  point
+  =/  seed=@  prv:(~(derive-sequence bip32 wall) pax)
+  %-  compute-commitment-point:commit
+  (get-commitment-secret [seed i])
+::
+++  get-commitment-secret
+  |=  [pax=(list @u) i=@]
+  ^-  commit-secret:commit
+  (generate-from-seed:commit [seed i ~])
 ::
 ++  send-result
   |=  =result:wallet
