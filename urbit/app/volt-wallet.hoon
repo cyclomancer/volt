@@ -13,9 +13,6 @@
 ::
 +$  point  point:secp:crypto
 ::
-::  A 
-+$  shown  (list )
-::
 +$  state-0
   $:  %0
       =wall
@@ -102,7 +99,7 @@
       %-  bex  256
     --
   ::
-      %get-public-key
+      %get-public-keys
     =/  pubkey=hexb:bc  (get-public-key path.action)
     :_  state
     ~[(send-result [%public-key path.action pubkey])]
@@ -117,25 +114,28 @@
     :_  state
     ~[(send-result [%signature path.action sig])]
   ::
-      %get-commitment-point
-    =/  =point  (get-commitment-point path.action idx.action)
+      %get-commit-point
+    =/  =point  (get-commit-point path.action idx.action)
     :_  state
     ~[(send-result [%point path.action point])]
   ::
-      %show-commitment-secret
-    =/  secret=@  (show-commitment-secret path.action idx.action)
+      %get-commit-secret
+    =/  secret=@  (get-commit-secret path.action idx.action)
     :_  state
     ~[(send-result [%secret path.action secret])]
   ==
 ::
-++  get-public-key
-  |=  pax=(list @u)
-  ^-  byts
+++  get-public-keys
+  |=  paths=(list pax)
+  ^-  (list byts)
+  =|  i=@u
+  |-
+  ?:  =(i (lent paths))
   :-  33
   public-key:(~(derive-sequence bip32 wall) pax)
 ::
 ++  get-address
-  |=  pax=(list @u)
+  |=  =pax
   ^-  address
   %^    from-pubkey:adr:bc
       %44
@@ -144,7 +144,7 @@
     pax
 ::
 ++  sign-digest
-  |=  [pax=(list @u) hash=hexb:bc]
+  |=  [=pax hash=hexb:bc]
   ^-  hexb:bc
   =/  key=@  prv:(~(derive-sequence bip32 wall) pax)
   =+  (ecdsa-raw-sign:ecc ^-(@ dat:hash) key)
@@ -154,15 +154,15 @@
       [wid=1 dat=v]
   ==
 ::
-++  get-commitment-point
-  |=  [pax=(list @u) i=@]
+++  get-commit-point
+  |=  [=pax i=@]
   ^-  point
   =/  seed=@  prv:(~(derive-sequence bip32 wall) pax)
   %-  compute-commitment-point:commit
-  (get-commitment-secret [seed i])
+  (get-commit-secret [seed i])
 ::
-++  get-commitment-secret
-  |=  [pax=(list @u) i=@]
+++  get-commit-secret
+  |=  [=pax i=@]
   ^-  commit-secret:commit
   (generate-from-seed:commit [seed i ~])
 ::

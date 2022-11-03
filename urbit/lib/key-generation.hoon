@@ -29,6 +29,15 @@
     %testnet  1
     %regtest  2
   ==
+::
+++  generate-keypath
+  |=  [start=@ =network =family:key]
+  ^-  (list @u)
+  :~  start
+      (encode-coin-network network)
+      (encode-key-family family)
+      0  0
+  ==
 ::  +generate-keypair: make keypair from seed
 ::
 ++  generate-keypair
@@ -48,10 +57,10 @@
   ^-  basepoints
   =|  =basepoints
   %=  basepoints
-    htlc             (generate-keypair seed network %htlc-base)
-    payment          (generate-keypair seed network %payment-base)
-    delayed-payment  (generate-keypair seed network %delay-base)
-    revocation       (generate-keypair seed network %revocation-base)
+    htlc             (generate-keypath seed network %htlc-base)
+    payment          (generate-keypath seed network %payment-base)
+    delayed-payment  (generate-keypath seed network %delay-base)
+    revocation       (generate-keypath seed network %revocation-base)
   ==
 ::
 ++  point-hash

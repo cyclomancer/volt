@@ -29,14 +29,16 @@
 ::
 +$  state-0
   $:  %0
+      $:  next=links:bolt
       $=  keys
-      $:  our=pair:key:bolt
+      $:  our=link:bolt
           chal=(map ship @)
           their=(map pubkey:bolt ship)
       ==
       $=  prov
       $:  btcp=(unit provider-state)
           volt=(unit provider-state)
+          wall=(unit ship)
           info=node-info
       ==
       $=  chan
@@ -71,11 +73,13 @@
 ::
 ++  on-init
   ^-  (quip card _this)
-  =+  seed=(~(rad og eny.bowl) (bex 256))
-  =+  keypair=(generate-keypair:^keys seed %main %node-key)
+  =/  =pax  ~[1.337]
   =+  state=*state-0
-  ~&  >  '%volt initialized successfully'
-  `this(state state(our.keys keypair))
+  :_  this(state state(our.keys [~ pax] branch.next 1.338))
+  ::  attempt to populate keys from a volt-wallet on this ship
+  :*  %pass   /wallet/set/
+      %agent  our.bowl^%volt-wallet
+      %poke   %volt-wallet-action
 ::
 ++  on-save
   ^-  vase
@@ -103,6 +107,10 @@
         %volt-message
       ?<  =((clan:title src.bowl) %pawn)
       (handle-message:hc !<(message:bolt vase))
+    ::
+        %volt-wallet-result
+      ?>  (team:title our.bowl src.bowl)
+      (handle-wallet-result:hc !<(result:wallet vase))
     ==
   [cards this]
 ::
@@ -235,10 +243,9 @@
         !!
     =/  rng  ~(. og eny.bowl)
     =^  tmp-id  rng  (rads:rng (bex 256))
-    =^  seed    rng  (rads:rng (bex 256))
     =^  chal    rng  (rads:rng (bex 256))
     =/  local-config=local-config:bolt
-      (make-local-config seed network funding-sats push-msats %.y)
+      (make-local-config network funding-sats push-msats %.y)
     =+  feerate=(current-feerate-per-kw)
     =/  first-per-commitment-secret=@
       %^    generate-from-seed:secret
@@ -1175,6 +1182,7 @@
     ==
   ==
 ::
+::
 ++  handle-provider-status
   |=  =status:provider
   ^-  (quip card _state)
@@ -1727,21 +1735,22 @@
   (div feerate-fallback:const:bolt 4)
 ::
 ++  make-local-config
-  |=  [seed=@ =network:bolt =funding=sats:bc =push=msats initiator=?]
+  |=  [=network:bolt =funding=sats:bc =push=msats initiator=?]
   ^-  local-config:bolt
+  =/  multisig-path  (generate-keypath:^keys seed network %multisig)
   =|  =local-config:bolt
   =.  local-config
     %=    local-config
         ship                     our.bowl
         network                  network
-        seed                     seed
+        path                     next
         to-self-delay            (mul 7 144)
         dust-limit-sats          dust-limit-sats:const:bolt
         max-accepted-htlcs       30
         funding-locked-received  %.n
         htlc-minimum-msats       1
         anchor-outputs           %.y
-        multisig-key             (generate-keypair:^keys seed network %multisig)
+        multisig-key             ::  generate path, get pubkey
         basepoints               (generate-basepoints:^keys seed network)
     ::
         max-htlc-value-in-flight-msats
@@ -1868,4 +1877,17 @@
   |=  =update
   ^-  card
   [%give %fact ~[/all] %volt-update !>(update)]
+::
+++  get-node-pubkey
+  |=  who=@p
+  ^-  card
+  :*  %pass   /wallet/node/
+      %agent  who^%volt-wallet
+      %poke   %volt-wallet-action
+      !>(`action:wallet`[%give-pubkey ~[1.337]])
+  ==
+::
+++  populate-next
+  |=  [who=ship branch=@u]
+  ^-  
 --

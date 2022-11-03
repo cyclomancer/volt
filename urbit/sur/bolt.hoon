@@ -55,21 +55,27 @@
         %revocation-root
         %node-key
     ==
-  +$  pair  [pub=pubkey prv=privkey]
+  +$  link  [pub=pubkey pax=(list @u)]
   --
 ::
 +$  basepoints
-  $:  revocation=pair:key
-      payment=pair:key
-      delayed-payment=pair:key
-      htlc=pair:key
+  $:  revocation=link:key
+      payment=link:key
+      delayed-payment=link:key
+      htlc=link:key
+  ==
+::
++$  links
+  $:  branch=@u
+      =basepoints
+      multisig=link:key
   ==
 ::
 ++  channel-config
   $:  =ship
       =network
       =basepoints
-      multisig-key=pair:key
+      multisig-key=link:key
       to-self-delay=blocks
       =dust-limit=sats:bc
       =max-htlc-value-in-flight=msats
@@ -87,7 +93,7 @@
       funding-locked-received=?
       =current-commitment=signature
       current-htlc-signatures=(list signature)
-      per-commitment-secret-seed=@
+      ::  per-commitment-secret-seed=@
   ==
 ::
 ++  remote-config

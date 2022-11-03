@@ -6,6 +6,8 @@
 +$  txid      hexb:bc
 +$  hash      hexb:bc
 +$  preimage  hexb:bc
++$  point     point:secp:crypto
++$  pax       (list @u)
 ::
 +$  msats    msats:bolt
 +$  chan-id  id:bolt
@@ -245,15 +247,19 @@
   |%
   +$  action
     $%  [%new-wallet seed=(unit hexb:bc)]
-        [%get-public-key path=(list @u)]
+        [%get-public-keys paths=(list (list @u))]
         [%get-address path=(list @u)]
         [%sign-digest path=(list @u) hash=hexb:bc]
+        [%get-commit-point path=(list @u) i=@]
+        [%get-commit-secret path=(list @u) i=@]
     ==
   ::
   +$  result
     $%  [%public-key path=(list @u) =pubkey]
         [%address path=(list @u) =address:bc]
         [%signature path=(list @u) signature=hexb:bc]
+        [%point path=(list @u) =point]
+        [%secret path=(list @u) secret=@]
     ==
   --
 ::
