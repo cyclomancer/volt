@@ -86,7 +86,7 @@
         %noun
       ?.  =(q.vase %kick-timer)  `state
       :_  state(timer `now.bowl)
-      :*  (start-ping-timer ~s1)
+      :*  (start-ping-timer ~s10)
           ?~  timer  ~
           [[%pass /block-time %arvo %b %rest u.timer] ~]
       ==
@@ -103,7 +103,7 @@
               host-info  [`api-state `our.bowl %.n network.comm 0 *(set ship)]
               timer      `now.bowl
           ==
-      :*  (start-ping-timer:hc ~s1)
+      :*  (start-ping-timer:hc ~s10)
           :*  %give  %fact  ~[/rpc]  %btc-provider-status
               !>(`status`[%new-rpc url.comm port.comm network.comm])
           ==
@@ -437,7 +437,7 @@
       ::         clients.host-info
       ::     ==
       ::   :_  this
-      ::   [(start-ping-timer:hc ~s1)]~
+      ::   [(start-ping-timer:hc ~s10)]~
       :: ::
           %btc-provider-status
         =/  =status  !<(status q.cage.sign)
@@ -446,7 +446,7 @@
         =.  api.host-info  `[url.status port.status %.n]
         :_  this
         :*  (send-status:hc [%disconnected ~])
-            (start-ping-timer:hc ~s1)
+            (start-ping-timer:hc ~s10)
             ::  todo ??
             ?~  timer  ~
             [[%pass /block-time %arvo %b %rest u.timer] ~]

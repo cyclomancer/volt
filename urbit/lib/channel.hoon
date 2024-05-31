@@ -127,10 +127,10 @@
 ::
 ++  set-state
   |=  new-state=chan-state
-  ^-  chan
+  ^+  c
   ?.  (~(has in state-transitions) [state.c new-state])
     ~|("illegal-state-transition: {<state.c>}->{<new-state>}" !!)
-  c(state new-state)
+  %_  c  state  new-state  ==
 ::
 ++  invert-owner
   |=  o=owner
@@ -212,10 +212,16 @@
 ++  shutdown-script
   =,  secp256k1:secp:crypto
   ^-  hexb:bc
-  ?:  !=(wid.upfront-shutdown-script.our.config.c 0)
-    upfront-shutdown-script.our.config.c
-  %-  p2wpkh:script
-  33^(compress-point pub.payment.basepoints.our.config.c)
+  :: ?:  !=(wid.upfront-shutdown-script.our.config.c 0)
+  ::   upfront-shutdown-script.our.config.c
+  (p2wpkh:script pub.payment.basepoints.our.config.c)
+::
+++  her-shutdown-script
+  =,  secp256k1:secp:crypto
+  ^-  hexb:bc
+  :: ?:  !=(wid.upfront-shutdown-script.our.config.c 0)
+  ::   upfront-shutdown-script.our.config.c
+  (p2wpkh:script pub.payment.basepoints.her.config.c)
 ::
 ++  funding-tx-min-depth
   ^-  blocks
@@ -1639,11 +1645,13 @@
   ^-  chan
   ?+    state.c  c
       %opening
+    ?:  =(0 funding-height)  c
     =+  confs=(sub block funding-height)
     ?.  (gte confs funding-tx-min-depth)  c
     (set-state %funded)
   ::
       %closing
+    ?:  =(0 closed-height)  c
     =+  confs=(sub block closed-height)
     ?.  (gth confs 0)  c
     (set-state %closed)

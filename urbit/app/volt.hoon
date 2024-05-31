@@ -99,7 +99,7 @@
 ::
 ++  on-init
   ^-  (quip card _this)
-  =+  seed=(~(rad og eny.bowl) (bex 256))
+  =+  seed=(~(raw og eny.bowl) 256)
   =+  keypair=(generate-keypair:key-gen seed %main %node-key)
   ~&  >  '%volt initialized successfully'
   =/  mainnet-prov=ship  ~falfer-docres-dozzod-tirrel
@@ -137,6 +137,10 @@
         %volt-message
       ?<  =((clan:title src.bowl) %pawn)
       (handle-message:hc !<(message:bolt vase))
+    ::
+        %card
+      :_  state
+      [!<(card vase) ~]
     ==
   [cards this]
 ::
@@ -448,11 +452,17 @@
       ~|  "%volt: funding-sats too low {<funding-sats>} < {<min-funding-sats:const:bolt>}"
         !!
     =/  rng  ~(. og eny.bowl)
-    =^  tmp-id  rng  (rads:rng (bex 256))
-    =^  seed    rng  (rads:rng (bex 256))
-    =^  chal    rng  (rads:rng (bex 256))
+    ~&  eny/eny.bowl
+    =^  tmp-id  rng  (raws:rng 256)
+      ~&  eny/eny.bowl
+    =^  seed    rng  (raws:rng 256)
+    =^  chal    rng  (raws:rng 256)
     =/  local-config=local-config:bolt
       (make-local-config seed network funding-sats push-msats %.y)
+    ~&  >  "our channel keys"
+    ~&  basepoints.local-config
+    ~&  >  "our upfront script"
+    ~&  upfront-shutdown-script.local-config
     =+  feerate=(current-feerate-per-kw)
     =/  first-per-commitment-secret=@
       %^    generate-from-seed:secret
@@ -600,7 +610,7 @@
       ~|  "%volt: no channel with id: {<chan-id>}"
         !!
     =|  close=coop-close-state
-    =/  timer=@da  (add now.bowl ~m1)
+    =/  timer=@da  (add now.bowl ~m3)
     =.  close
       %=  close
         initiator   our.bowl
@@ -621,7 +631,7 @@
     :: =+  them=~(tap by their.keys)
     :: =+  pubkey=+.(head (skim them |=([k=pubkey:volt p=ship] =(p ship))))
     =/  rng  ~(. og eny.bowl)
-    =^  preimage  rng  (rads:rng (bex 256))
+    =^  preimage  rng  (raws:rng 256)
     =+  hash=(sha256:bcu:bc 32^preimage)
     =.  invoice
       %=  invoice
@@ -807,7 +817,7 @@
       ~|  "%volt: no provider configured"
         !!
     =/  rng  ~(. og eny.bowl)
-    =^  preimage  rng  (rads:rng (bex 256))
+    =^  preimage  rng  (raws:rng 256)
     =+  hash=(sha256:bcu:bc 32^preimage)
     =|  req=payment-request
     :_  %=    state
@@ -939,10 +949,15 @@
     ::
     =+  network=(chain-hash-network:bolt chain-hash)
     =/  rng  ~(. og eny.bowl)
-    =^  seed  rng  (rads:rng (bex 256))
-    =^  chal  rng  (rads:rng (bex 256))
+    =^  seed  rng  (raws:rng 256)
+    ~&  >  seed
+    =^  chal  rng  (raws:rng 256)
     =/  local-config=local-config:bolt
       (make-local-config seed network funding-sats push-msats %.n)
+    ~&  >  "our channel keys"
+    ~&  basepoints.local-config
+    ~&  >  "our upfront script"
+    ~&  upfront-shutdown-script.local-config
     ::
     =|  =remote-config:bolt
     =.  remote-config
@@ -964,6 +979,10 @@
         upfront-shutdown-script         shutdown-script-pubkey
       ==
     ::
+    ~&  >  "his channel pubkeys"
+    ~&  basepoints.remote-config
+    ~&  >  "his upfront script config"
+    ~&  upfront-shutdown-script.remote-config
     ~|  %incompatible-channel-configurations
     ?>  (validate-config:bolt -.remote-config funding-sats)
     ::  The receiving node MUST fail the channel if:
@@ -1016,7 +1035,7 @@
         pub.htlc.basepoints             pub.htlc.basepoints.local-config
         pub.payment.basepoints          pub.payment.basepoints.local-config
         pub.delayed-payment.basepoints  pub.delayed-payment.basepoints.local-config
-        basepoints                      basepoints.local-config
+        :: basepoints                      basepoints.local-config
         shutdown-script-pubkey          upfront-shutdown-script.local-config
         anchor-outputs                  anchor-outputs.local-config
         first-per-commitment-point      %-  compute-commitment-point:secret
@@ -1093,6 +1112,10 @@
         anchor-outputs                  anchor-outputs.msg
       ==
     ::
+    ~&  >  "his channel pubkeys"
+    ~&  basepoints.remote-config
+    ~&  >  "his upfront script"
+    ~&  upfront-shutdown-script.remote-config
     ~|  %incompatible-channel-configurations
     ?>  (validate-config:bolt -.remote-config funding-sats.u.oc.u.c)
     ::  if channel_reserve_satoshis is less than dust_limit_satoshis, MUST reject the channel
@@ -1365,16 +1388,17 @@
     =+  close=(~(get by shut.chan) id.u.c)
     ?~  close
       ::  counterparty initiated: ack shutdown, and if we're the funder, start closing negotiations
+      ~&  >  "acking shutdown"
       ::
       =|  close=coop-close-state
       =.  initiator.close   src.bowl
-      =.  her-script.close  script-pubkey
+      =.  her-script.close  ~(her-shutdown-script channel u.c)
       =.  our-script.close  ~(shutdown-script channel u.c)
       ~&  >  "her-script"
       ~&  her-script.close
       ~&  >  "our-script"
       ~&  our-script.close
-      =.  timeout.close  (add now.bowl ~m1)
+      =.  timeout.close  (add now.bowl ~m3)
       =^  ack-cards  u.c      (send-shutdown u.c close)
       =^  sig-cards  close    (maybe-sign-closing u.c close)
       :: test: removing assertion fixes bug in non-funder-initiated closing, doesn't introduce new one
@@ -1386,8 +1410,11 @@
       ==
     ::  counterparty acked: start closing negotiations if we're the funder, otherwise wait for first closing-signed msg from counterparty
     ::
-    ?>  =(initiator.u.close our.bowl)
-    =.  her-script.u.close  script-pubkey
+    ?.  =(initiator.u.close our.bowl)
+      ~&  >  "shutdown acked by funder"
+      `state
+    ~&  >  "shutdown acked by nonfunder"
+    =.  her-script.u.close  ~(her-shutdown-script channel u.c)
     =^  sig-cards  u.close  (maybe-sign-closing u.c u.close)
     =^  time-cards  u.close  (reset-timer id.u.c u.close)
     :-  (weld sig-cards time-cards)
@@ -1410,9 +1437,9 @@
         her-sig  signature
       ==
     ~&  >  "her-script"
-      ~&  her-script.close
-      ~&  >  "our-script"
-      ~&  our-script.close
+    ~&  her-script.close
+    ~&  >  "our-script"
+    ~&  our-script.close
     =/  [closing-tx=psbt:psbt our-sig=signature:bolt]
       %^    ~(make-closing-tx channel u.c)
           our-script.close
@@ -1425,7 +1452,7 @@
         (sub our-fee.close her-fee.close)
       (sub her-fee.close our-fee.close)
     ?:  (lth fee-diff 2)
-      ::  we're done
+      ~&  >  "we're done"
       ::
       =.  our-fee.close  her-fee.close
       =.  our-sig.close  our-sig
@@ -1449,6 +1476,7 @@
         ==
       ::
       =.  u.c  (~(set-state channel u.c) %closing)
+      ~&  >  "help-shut-hear-sign"
       =+  encoded=(extract:psbt closing-tx)
       =+  id=(request-id dat.encoded)
       =/  =action:btc-provider  [id %broadcast-tx encoded]
@@ -1461,14 +1489,15 @@
         cards
         (poke-btc-provider action)
         ~[(give-update [%channel-state id.u.c %closing])]
-        [%pass /timer/(scot %uv id.u.c) %arvo %b %rest timeout.close]^~
+        ~&  >  "resting timer for {<timeout.close>}"
+        (do-timer [%pass /timer/(scot %uv id.u.c) %arvo %b %rest timeout.close])^~
       ==
     ::  set fee 'strictly between' the previous values
     ::
     =/  our-fee=sats:bc
       (div (add our-fee.close her-fee.close) 2)
     =.  our-fee.close  our-fee
-    ::  another round
+    ~&  >  "another round"
     ::
     =^  sig-cards  close  (maybe-sign-closing u.c close)
     =^  time-cards  close  (reset-timer id.u.c close)
@@ -1578,7 +1607,7 @@
     [cards state]
   ::
       %give-invoice
-    ?>  own-provider
+    :: ?>  own-provider
     =|  req=payment-request
     :_  %=  state  incoming.payments
         %+  ~(put by incoming.payments)  payment-hash.action
@@ -2056,6 +2085,7 @@
       =/  upd  (snoc their-force.chk [id i.unrev txid.i.txs])
       $(txs t.txs, i +(i), their-force.chk upd)
     ?:  =(state.ch %closing)
+      ~&  >  "found coop close tx onchain"
       $(txs t.txs, i +(i), coop.chk (snoc coop.chk id))
     ?.  =(state.ch %force-closing)
       ::  TODO: loss-of-funds flag in state and update to client?
@@ -2098,6 +2128,7 @@
         |=  [@ =action:btc-provider]
         (poke-btc-provider action)
       cards
+    ~&  >  "push-shut-hear-fuck"
     =.  ch  (~(set-state channel ch) %force-closing)
     =:  live.chan  (~(put by live.chan) id.i.rev ch)
         dead.chan  (~(put by dead.chan) id.i.rev force)
@@ -2187,6 +2218,7 @@
         (poke-btc-provider action)
         ~[(give-update [%channel-state id.i.close %force-closing])]
       ==
+    ~&  >  "push-shut-hear-walk"
     =.  ch  (~(set-state channel ch) %force-closing)
     =/  sent=(list [hexb:bc pending-timelock])
       %+  turn  ~(tap by sent-htlc-index.com.i.close)
@@ -2214,6 +2246,7 @@
     ?~  close
       [cards state]
     =+  ch=(~(got by live.chan) i.close)
+    ~&  >  "help-shut-done-hear-rest"
     =.  ch  (~(set-state channel ch) %closed)
     =+  closing=(~(got by shut.chan) i.close)
     =.  close-height.closing  block.chain
@@ -2221,6 +2254,7 @@
       %+  snoc  cards
       (give-update [%channel-state i.close %closed])
     =:  live.chan  (~(put by live.chan) i.close ch)
+        :: dead.chan  (~(put by dead.chan) i.close ch)
         shut.chan  (~(put by shut.chan) i.close closing)
     ==
     $(close t.close)
@@ -2228,6 +2262,7 @@
   ++  handle-local-closed
     |=  close=(list spend)
     ^-  (quip card _state)
+    ~&  >  "handle-local-closed"
     =|  cards=(list card)
     |-
     ?~  close
@@ -2415,17 +2450,17 @@
       :_  state
       ~[(volt-command [%create-funding u.tbf funding-tx])]
     ::
+    :: otherwise look for a channel funded by this address
     =+  ^=  script-pubkey
       %-  cat:byt:bcu:bc
       :~  1^0
           1^0x20
           (bech32-decode:bolt +.address)
       ==
-    :: find the channel funded by this address
     =+  id=(~(get by wach.chan) script-pubkey)
     ?~  id  `state
     =+  channel=(~(got by live.chan) u.id)
-    ::  search the returned utxos for a match with the channel funding output
+    ::  search the returned utxos for an exact match with the channel funding output
     =/  utxo=(unit utxo:bc)
       %-  ~(rep in utxos)
       |=  [output=utxo:bc acc=(unit utxo:bc)]
@@ -2473,6 +2508,7 @@
     ::  get transactions in block
     ?:  ~(is-funded ^channel channel)
       ::  if a coop close has been initiated for this channel
+      ~&  >  "coop close seen in handle-address-info"
       =+  close=(~(get by shut.chan) u.id)
       ?^  close
         ::  cooperative close:
@@ -2494,16 +2530,24 @@
   ::
   ++  on-channel-update
     |=  [channel=chan:bolt =utxo:bc block=@]
-    ^-  (quip card _channel)
+    ^-  (quip card chan:bolt)
     ?+    state.channel  `channel
+      ::   %opening
+      :: :: =.  channel  (~(set-state ^channel channel) %funded)
+      :: =>  .(channel `chan:bolt`(~(set-state ^channel channel) %funded))
+      :: (send-funding-locked channel)
+    ::
+        %funded
+      (send-funding-locked channel)
+    ::
+    ::  todo medium/high: trigger force-close in incoming case
+    ::  todo low/?: outgoing case is only needed for protection against liquidity DOSing
+      ::  DOS is currently globally trivial, and FC vs attempting cooperative update is more a matter of latency-minimization policy than safety
         %open
       ?:  (~(has-expiring-htlcs ^channel channel) block)
         ::  force close
         `channel
       `channel
-    ::
-        %funded
-      (send-funding-locked channel)
     ::
         %force-closing
       `channel
@@ -2635,10 +2679,12 @@
     ~|  "her updates"
     ~|  her.updates.c
   ?>  (can-send-shutdown c)
+  ~&  >  "here-help-shut"
+  ~&  >  "setting timer for {<timeout.close>}"
   :_  (~(set-state channel c) %shutdown)
   :~  (send-message [%shutdown id.c our-script.close] ship.her.config.c)
       (give-update [%channel-state id.c %shutdown])
-      [%pass /timer/(scot %uv id.c) %arvo %b %wait timeout.close]
+      (do-timer [%pass /timer/(scot %uv id.c) %arvo %b %wait timeout.close])
   ==
   ++  can-send-shutdown
     |=  c=chan:bolt
@@ -3073,11 +3119,17 @@
 ++  reset-timer
   |=  [=id:bolt close=coop-close-state]
   ^-  (quip card _close)
-  =/  timer=@da  (add now.bowl ~m1)
+  =/  timer=@da  (add now.bowl ~m3)
+  ~&  >  "resting timer for {<timeout.close>}"
+  ~&  >  "resetting timer for {<timer>}"
   :_  close(timeout timer)
-  :~  [%pass /timer/(scot %uv id) %arvo %b %rest timeout.close]
-      [%pass /timer/(scot %uv id) %arvo %b %wait timer]
+  :~  (do-timer [%pass /timer/(scot %uv id) %arvo %b %rest timeout.close])
+      (do-timer [%pass /timer/(scot %uv id) %arvo %b %wait timer])
   ==
+++  do-timer
+  |=  =card
+  ^+  card
+  [%pass /rest %agent our.bowl^%volt %poke %card !>(card)]
 ::
 ++  handle-lost-peer
   |=  =id:bolt
@@ -3087,6 +3139,7 @@
   ?~  commit  !!
   =+  tx=(extract:psbt tx.u.commit)
   =+  rid=(request-id dat.tx)
+  ~&  >  "push-shut-lost-peer"
   =.  c  (~(set-state channel c) %force-closing)
   =|  close=force-close-state
   =.  close
