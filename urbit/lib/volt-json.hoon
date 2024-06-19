@@ -80,12 +80,6 @@
     |=  upd=update:volt
     ^-  json
     ?+    -.upd  (frond 'type' s+'unimplemented')
-        %hot-wallet-fee
-      %-  pairs
-        :~  ['type' s+'hot-wallet-fee']
-            ['sats' ?^(sats.upd (numb +.sats.upd) ~)]
-        ==
-      ::
         %need-funding
       %-  pairs
         :~  ['type' s+'need-funding']
@@ -125,6 +119,23 @@
           ['chans' a+(turn chans.upd chan-info)]
           ['txs' a+(turn txs.upd pay-info)]
           ['invoices' a+(turn invoices.upd payment-request)]
+      ==
+    ==
+  ::
+  ++  response
+    |=  res=response:volt
+    ^-  json
+    ?-    -.res
+        %hot-wallet-fee
+      %-  pairs
+        :~  ['type' s+'hot-wallet-fee']
+            ['sats' ?^(sats.res (numb +.sats.res) ~)]
+        ==
+      ::
+        %payreq-amount
+      %-  pairs
+      :~  ['is-valid' b+is-valid.res]
+          ['msats' ?^(msats.res (numb u.msats.res) ~)]
       ==
     ==
   ::

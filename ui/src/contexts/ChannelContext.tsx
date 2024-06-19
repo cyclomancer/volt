@@ -110,7 +110,7 @@ export const ChannelContextProvider: React.FC<{ children: React.ReactNode }> = (
         displayJsInfo('Got new channel update from /all');
         handleNewChannel(update as NewChannelUpdate);
       } else if (update.type === UpdateType.TempChanUpgraded) {
-        displayJsInfo('Got channel deleted update from /all');
+        displayJsInfo('Got channel upgraded update from /all');
         handleTemporaryChannelUpgraded(update as TempChanUpgradedUpdate);
       } else {
         console.log('Unimplemented update type', update);

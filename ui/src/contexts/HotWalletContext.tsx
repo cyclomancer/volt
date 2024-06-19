@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import BitcoinAmount from '../types/BitcoinAmount';
 import { ApiContext } from './ApiContext';
 import { FeedbackContext } from './FeedbackContext';
+import { HotWalletFeeScryResponse } from '../types/Response';
 
 interface HotWalletContextValue {
   hotWalletFee: BitcoinAmount | null;
@@ -22,7 +23,7 @@ export const HotWalletContextProvider: React.FC<{ children: React.ReactNode }> =
       if (scryInProgress.current) return;
       scryInProgress.current = true;
       try {
-        const response = await api.scry({
+        const response: HotWalletFeeScryResponse = await api.scry({
           app: "volt",
           path: "/hot-wallet-fee",
         });

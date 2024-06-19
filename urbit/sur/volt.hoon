@@ -340,8 +340,7 @@
 +$  invoice-and-pay-params  [amount=@ud net=?(%regtest %main %testnet) who=@p]
 ::
 +$  update
-  $%  [%hot-wallet-fee sats=(unit sats:bc)]
-      [%need-funding funding-info=(list funding-info)]
+  $%  [%need-funding funding-info=(list funding-info)]
       [%channel-state =chan-id =chan-state:bolt]
       [%temp-chan-upgraded id=@]
       [%received-payment from=ship =amt=msats]
@@ -356,5 +355,10 @@
       ==
       [%payment-update =payment]
       [%payment-history log=(map hexb:bc payment)]
+  ==
+::
++$  response
+  $%  [%payreq-amount is-valid=? msats=(unit msats)]
+      [%hot-wallet-fee sats=(unit sats:bc)]
   ==
 --
