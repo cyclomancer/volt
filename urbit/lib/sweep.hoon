@@ -332,7 +332,7 @@
   =|  =output:psbt
   =|  preimages=(list hexb:bc)
   =.  script-pubkey.output
-    (p2wpkh:script pub.multisig-key.our.config.c)
+    (p2wpkh:script pub.payment.basepoints.our.config.c)
   =/  to-spend=(list [input:psbt hexb:bc])
     %+  murn  recd-htlcs.com
     |=  msg=add-htlc:update
@@ -451,7 +451,7 @@
       prevout         [(txid:psbt (extract-unsigned:psbt tx.com)) u.local-idx]
     ==
   =|  =output:psbt
-  =.  script-pubkey.output  (p2wpkh:script pub.multisig-key.our.config.c)
+  =.  script-pubkey.output  (p2wpkh:script pub.payment.basepoints.our.config.c)
   =.  value.output  balance.our.com
   =|  =psbt:psbt
   `[addr psbt(inputs ~[input], outputs ~[output])]

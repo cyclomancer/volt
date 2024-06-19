@@ -2289,13 +2289,13 @@
       %-  ~(run by -.+.res)
       |=  =psbt:psbt
       ^-  pending-timelock
-      [delay-height psbt `multisig-key.our.config.c]
+      [delay-height psbt `delayed-payment.basepoints.our.config.c]
     =?  updated  ?=(^ spend-local)
       %+  ~(put by updated)
         -.u.spend-local
       :*  delay-height
           +.u.spend-local
-          `delayed-payment.basepoints.our.config.c
+          `payment.basepoints.our.config.c
       ==
     =.  cards
       %+  snoc  cards
