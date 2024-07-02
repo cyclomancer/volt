@@ -83,13 +83,18 @@
         %btc-provider-action
       (handle-action !<(action vase))
     ::
+    ::  unused?
         %noun
       ?.  =(q.vase %kick-timer)  `state
       :_  state(timer `now.bowl)
-      :*  (start-ping-timer ~s10)
+      :*  (start-ping-timer ~m1)
           ?~  timer  ~
-          [[%pass /block-time %arvo %b %rest u.timer] ~]
+          [[%pass /block-ping %arvo %b %rest u.timer] ~]
       ==
+    ::
+        %card
+      :_  state
+      [!<(card vase) ~]
     ==
   [cards this]
   ::
@@ -108,7 +113,7 @@
               !>(`status`[%new-rpc url.comm port.comm network.comm])
           ==
           ?~  timer  ~
-          [[%pass /block-time/[(scot %da now.bowl)] %arvo %b %rest u.timer] ~]
+          [[%pass /block-ping %arvo %b %rest u.timer] ~]
       ==
     ::
         %set-external
@@ -265,6 +270,8 @@
     :_  this(timer `(add now.bowl interval))
     :~  do-ping
         (start-ping-timer:hc interval)
+        :: ?~  timer  ~
+        :: [[%pass /block-ping %arvo %b %rest u.timer] ~]
     ==
   =^  cards  state
     ?+    +<.sign-arvo    (on-arvo:def wir sign-arvo)
@@ -301,10 +308,9 @@
       ::  TODO: attempt to reestablish connection if %bad-request from client app?
       ?:  !=(%ping -.wire)
         ~[(send-update-request:hc [%| u.conn-err])]
-      :*  do-ping
-          (start-ping-timer:hc interval)
+      :*  (start-ping-timer:hc interval)
           ?~  timer  ~
-          [[%pass /block-time %arvo %b %rest u.timer] ~]
+          [[%pass /block-ping %arvo %b %rest u.timer] ~]
       ==
     ::
     %+  handle-rpc-result  wire
@@ -447,9 +453,8 @@
         :_  this
         :*  (send-status:hc [%disconnected ~])
             (start-ping-timer:hc ~s10)
-            ::  todo ??
             ?~  timer  ~
-            [[%pass /block-time %arvo %b %rest u.timer] ~]
+            [[%pass /rest %agent our.bowl^%bitcoin-rpc %poke %card !>(`card`[%pass /block-ping %arvo %b %rest u.timer])] ~]
         ==
       ==
     ==
